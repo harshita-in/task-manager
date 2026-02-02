@@ -1,18 +1,26 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Auth from './components/Auth';
-import TaskManager from './components/TaskManager';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Auth from './components/auth';
+import TaskManager from './components/taskmanager';
 import { auth } from './firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 function App() {
-  const [user] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-rose-500">Loading...</div>;
+  }
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen">
         <Routes>
-          <Route path="/" element={user ? <TaskManager /> : <Auth />} />
+          <Route
+            path="/"
+            element={user ? <TaskManager /> : <Auth />}
+          />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
     </Router>
