@@ -7,6 +7,7 @@ function TaskForm({ onAdd, onClose, task = null }) {
   const [description, setDescription] = useState(task?.description || '');
   const [status, setStatus] = useState(task?.status || 'active');
   const [priorityTag, setPriorityTag] = useState(task?.priority?.tag || 'Low');
+  const [style, setStyle] = useState(task?.style || 'default');
   const [endDate, setEndDate] = useState(task?.priority?.endDate || '');
 
   const handleSubmit = (e) => {
@@ -16,7 +17,7 @@ function TaskForm({ onAdd, onClose, task = null }) {
       description,
       status,
       priority: { tag: priorityTag, endDate },
-      style: 'default', // Deprecated but kept for compatibility
+      style,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -82,14 +83,28 @@ function TaskForm({ onAdd, onClose, task = null }) {
               </div>
 
               <div>
-                <label className="block text-slate-500 text-sm mb-1 font-medium">Due Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-white border border-rose-100 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all shadow-sm"
-                />
+                <label className="block text-slate-500 text-sm mb-1 font-medium">Card Style</label>
+                <select
+                  value={style}
+                  onChange={(e) => setStyle(e.target.value)}
+                  className="w-full bg-white border border-rose-100 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all appearance-none shadow-sm cursor-pointer"
+                >
+                  <option value="default">Default</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="glass">Glass</option>
+                  <option value="colorful">Cyber</option>
+                </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-500 text-sm mb-1 font-medium">Due Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full bg-white border border-rose-100 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-400 transition-all shadow-sm"
+              />
             </div>
 
             <button
@@ -98,10 +113,10 @@ function TaskForm({ onAdd, onClose, task = null }) {
             >
               Save Task
             </button>
-          </form>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+          </form >
+        </motion.div >
+      </div >
+    </AnimatePresence >
   );
 }
 

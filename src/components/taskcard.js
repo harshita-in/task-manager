@@ -19,6 +19,17 @@ function TaskCard({ task, onUpdate, onDelete }) {
   const priorityTheme = priorityColors[task.priority?.tag] || priorityColors.Low;
   const statusTheme = statusStyles[task.status] || statusStyles.active;
 
+  // Style Variants
+  const styles = {
+    default: "glass-panel bg-white/80 border-white/60",
+    minimal: "bg-white border border-slate-200 shadow-sm",
+    glass: "bg-white/30 backdrop-blur-xl border border-white/50 shadow-2xl",
+    colorful: "bg-gradient-to-br from-indigo-900 to-purple-900 border-purple-500/30 text-white",
+  };
+
+  const cardStyle = styles[task.style] || styles.default;
+  const isDark = task.style === 'colorful';
+
   return (
     <motion.div
       layout
@@ -31,7 +42,7 @@ function TaskCard({ task, onUpdate, onDelete }) {
         boxShadow: "0 20px 40px -10px rgba(251, 113, 133, 0.2)"
       }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="glass-panel p-6 rounded-2xl relative overflow-hidden group border border-white/40 hover:border-rose-200/50"
+      className={`p-6 rounded-2xl relative overflow-hidden group hover:border-rose-200/50 transition-all ${cardStyle}`}
     >
       {/* Dynamic Glow Background */}
       <div className={`absolute -top-20 -right-20 w-48 h-48 rounded-full opacity-0 group-hover:opacity-10 blur-3xl transition-opacity duration-500 pointer-events-none ${priorityTheme}`}></div>
@@ -41,16 +52,14 @@ function TaskCard({ task, onUpdate, onDelete }) {
           <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border ${statusTheme} mb-3 inline-block`}>
             {task.status === 'incomplete' ? 'Missed' : task.status}
           </span>
-          {/* Changed text to slate-800 for light mode */}
-          <h3 className="text-xl font-bold text-slate-800 leading-tight tracking-tight">{task.title}</h3>
+          <h3 className={`text-xl font-bold leading-tight tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{task.title}</h3>
         </div>
         <div className={`p-2.5 rounded-xl ${priorityTheme} text-white shadow-md`}>
           <TagIcon className="w-5 h-5" />
         </div>
       </div>
 
-      {/* Changed text to slate-600 */}
-      <p className="text-slate-600 text-sm mb-6 leading-relaxed line-clamp-3 font-normal relative z-10">
+      <p className={`text-sm mb-6 leading-relaxed line-clamp-3 font-normal relative z-10 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
         {task.description}
       </p>
 
