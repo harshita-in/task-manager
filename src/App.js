@@ -22,7 +22,7 @@ function App() {
           />
           <Route
             path="/"
-            element={user ? <TaskManager /> : <Navigate to="/login" />}
+            element={user ? <TaskManager user={user} /> : <Navigate to="/login" />}
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

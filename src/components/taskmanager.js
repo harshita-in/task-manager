@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import TaskCard from './taskcard';
 import TaskForm from './taskform';
@@ -8,35 +8,41 @@ import { isAfter } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagnifyingGlassIcon, PlusIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
-function TaskManager() {
+function TaskManager({ user }) {
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const user = auth.currentUser;
+  const [error, setError] = useState(''); // New error state
+  // const userResult = auth.currentUser; // Removed in favor of prop
 
   useEffect(() => {
-    if (user) fetchTasks();
-  }, [user]);
+    if (!user) return;
 
-  const fetchTasks = async () => {
-    try {
-      const q = query(collection(db, 'users', user.uid, 'tasks'));
-      const snapshot = await getDocs(q);
+    const q = query(collection(db, 'users', user.uid, 'tasks'));
+
+    // Real-time listener
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const taskList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // Auto-manage missed tasks
       const updatedTasks = taskList.map(task => {
         if (task.priority?.endDate && isAfter(new Date(), new Date(task.priority.endDate)) && task.status === 'active') {
+          // This will trigger another update, but since status changes, it won't loop infinitely
           updateDoc(doc(db, 'users', user.uid, 'tasks', task.id), { status: 'missed' });
           return { ...task, status: 'missed' };
         }
         return task;
       });
+
       setTasks(updatedTasks);
-    } catch (e) {
-      console.error("Error fetching tasks. Check Firebase config.", e);
-    }
-  };
+      setError(''); // Clear error on successful update
+    }, (error) => {
+      console.error("Error fetching tasks:", error);
+      setError("Failed to load tasks. " + error.message);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const addTask = async (task) => {
     if (!user) {
@@ -45,23 +51,29 @@ function TaskManager() {
     }
     try {
       await addDoc(collection(db, 'users', user.uid, 'tasks'), task);
-      fetchTasks();
+      // No need to fetchTasks(), onSnapshot handles it
     } catch (error) {
       console.error("Error adding task: ", error);
-      alert("Error adding task: " + error.message + "\n\nDid you create the Firestore Database in the console?");
+      setError("Error adding task: " + error.message);
     }
   };
 
   const updateTask = async (id, updates) => {
     if (!user) return;
-    await updateDoc(doc(db, 'users', user.uid, 'tasks', id), updates);
-    fetchTasks();
+    try {
+      await updateDoc(doc(db, 'users', user.uid, 'tasks', id), updates);
+    } catch (e) {
+      setError("Could not update task.");
+    }
   };
 
   const deleteTask = async (id) => {
     if (!user) return;
-    await deleteDoc(doc(db, 'users', user.uid, 'tasks', id));
-    fetchTasks();
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'tasks', id));
+    } catch (e) {
+      setError("Could not delete task.");
+    }
   };
 
   const filteredTasks = tasks.filter(task =>
@@ -72,11 +84,15 @@ function TaskManager() {
   return (
     <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto">
       <header className="flex flex-col md:flex-row justify-between items-center mb-10 glass-panel p-6 rounded-2xl bg-white/40">
-        <div className="flex items-center space-x-4 mb-4 md:mb-0">
-          {/* Updated gradient text for Light Pink theme */}
+        <div className="flex flex-col mb-4 md:mb-0">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-500 drop-shadow-sm">
             Task Manager
           </h1>
+          {/* Display User Email and UID */}
+          <div className="text-sm text-slate-500 mt-1">
+            <p>Logged in as: <span className="font-semibold text-rose-500">{user?.email}</span></p>
+            <p className="text-xs text-slate-400">ID: <span className="font-mono">{user?.uid?.slice(0, 6)}...</span></p>
+          </div>
         </div>
 
         <div className="flex items-center space-x-4 w-full md:w-auto">
@@ -108,6 +124,34 @@ function TaskManager() {
         </div>
       </header>
 
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r shadow-sm flex justify-between items-center" role="alert">
+          <p>{error}</p>
+          <button onClick={() => setError('')} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
+        </div>
+      )}
+
+      {/* DEBUG PANEL - Remove after fixing */}
+      <div className="mb-6 p-4 bg-slate-100 rounded-xl border border-slate-300 text-xs text-slate-600 font-mono">
+        <p className="font-bold text-slate-800">DEBUG PANEL</p>
+        <p>User ID: {user?.uid}</p>
+        <p>Tasks Loaded: {tasks.length}</p>
+        <p>Snapshot Status: {error ? "Error" : "Listening..."}</p>
+        <button
+          onClick={() => addTask({
+            title: "Test Task " + new Date().toLocaleTimeString(),
+            description: "Debug task to verify persistence",
+            status: "active",
+            createdAt: new Date(),
+            priority: { tag: "High", endDate: new Date().toISOString().split('T')[0] }
+          })}
+          className="mt-2 bg-slate-800 text-white px-3 py-1 rounded hover:bg-slate-700"
+        >
+          Force Add Test Task
+        </button>
+      </div>
+
       {showForm && <TaskForm onAdd={addTask} onClose={() => setShowForm(false)} />}
 
       <motion.div
@@ -125,7 +169,8 @@ function TaskManager() {
               animate={{ opacity: 1 }}
               className="col-span-full text-center py-20 text-slate-500"
             >
-              <p className="text-lg">No tasks found. Create one to get started!</p>
+              <p className="text-lg">No tasks found for account <span className="font-semibold">{user?.email}</span>.</p>
+              <p className="text-sm mt-2">Create a new task to get started!</p>
             </motion.div>
           )}
         </AnimatePresence>
