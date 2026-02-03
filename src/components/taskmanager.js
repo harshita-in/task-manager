@@ -12,8 +12,7 @@ function TaskManager({ user }) {
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState(''); // New error state
-  // const userResult = auth.currentUser; // Removed in favor of prop
+  const [loading, setLoading] = useState(true); // New loading state
 
   useEffect(() => {
     if (!user) return;
@@ -24,21 +23,13 @@ function TaskManager({ user }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const taskList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Auto-manage missed tasks
-      const updatedTasks = taskList.map(task => {
-        if (task.priority?.endDate && isAfter(new Date(), new Date(task.priority.endDate)) && task.status === 'active') {
-          // This will trigger another update, but since status changes, it won't loop infinitely
-          updateDoc(doc(db, 'users', user.uid, 'tasks', task.id), { status: 'missed' });
-          return { ...task, status: 'missed' };
-        }
-        return task;
-      });
-
-      setTasks(updatedTasks);
-      setError(''); // Clear error on successful update
+      setTasks(taskList);
+      setLoading(false); // Data loaded
+      setError('');
     }, (error) => {
       console.error("Error fetching tasks:", error);
       setError("Failed to load tasks. " + error.message);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -133,7 +124,11 @@ function TaskManager({ user }) {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         <AnimatePresence>
-          {filteredTasks.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full text-center py-20 text-slate-500 animate-pulse">
+              Connecting to database...
+            </div>
+          ) : filteredTasks.length > 0 ? (
             filteredTasks.map(task => (
               <TaskCard key={task.id} task={task} onUpdate={updateTask} onDelete={deleteTask} />
             ))
