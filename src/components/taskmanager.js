@@ -12,7 +12,8 @@ function TaskManager({ user }) {
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true); // New loading state
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
