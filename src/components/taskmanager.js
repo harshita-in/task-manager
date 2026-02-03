@@ -124,33 +124,7 @@ function TaskManager({ user }) {
         </div>
       </header>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r shadow-sm flex justify-between items-center" role="alert">
-          <p>{error}</p>
-          <button onClick={() => setError('')} className="text-red-500 hover:text-red-700 font-bold">&times;</button>
-        </div>
-      )}
-
       {/* DEBUG PANEL - Remove after fixing */}
-      <div className="mb-6 p-4 bg-slate-100 rounded-xl border border-slate-300 text-xs text-slate-600 font-mono">
-        <p className="font-bold text-slate-800">DEBUG PANEL</p>
-        <p>User ID: {user?.uid}</p>
-        <p>Tasks Loaded: {tasks.length}</p>
-        <p>Snapshot Status: {error ? "Error" : "Listening..."}</p>
-        <button
-          onClick={() => addTask({
-            title: "Test Task " + new Date().toLocaleTimeString(),
-            description: "Debug task to verify persistence",
-            status: "active",
-            createdAt: new Date(),
-            priority: { tag: "High", endDate: new Date().toISOString().split('T')[0] }
-          })}
-          className="mt-2 bg-slate-800 text-white px-3 py-1 rounded hover:bg-slate-700"
-        >
-          Force Add Test Task
-        </button>
-      </div>
 
       {showForm && <TaskForm onAdd={addTask} onClose={() => setShowForm(false)} />}
 
