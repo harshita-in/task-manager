@@ -1,6 +1,8 @@
-# Getting Started with Create React App
+# Task Manager
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### 🚀 Live Demo: [https://task-manager-c942c.web.app](https://task-manager-c942c.web.app)
+
+A modern, real-time task management application built with React and Firebase.
 
 ## Available Scripts
 
