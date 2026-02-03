@@ -24,6 +24,14 @@ function TaskManager({ user }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const taskList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+      // Auto-manage missed tasks (SAFE VERSION)
+      taskList.forEach(task => {
+        if (task.priority?.endDate && isAfter(new Date(), new Date(task.priority.endDate)) && task.status === 'active') {
+          // Only update if it is currently active. This prevents infinite loops.
+          updateDoc(doc(db, 'users', user.uid, 'tasks', task.id), { status: 'missed' });
+        }
+      });
+
       setTasks(taskList);
       setLoading(false); // Data loaded
       setError('');
