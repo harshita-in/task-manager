@@ -99,10 +99,11 @@ function TaskManager() {
           </button>
           <button
             onClick={() => signOut(auth)}
-            className="bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-500 px-4 py-2.5 rounded-xl transition-all shadow-sm border border-white"
+            className="bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-500 px-4 py-2.5 rounded-xl transition-all shadow-sm border border-white flex items-center gap-2"
             title="Logout"
           >
             <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
           </button>
         </div>
       </header>

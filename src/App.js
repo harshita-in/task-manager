@@ -17,8 +17,12 @@ function App() {
       <div className="min-h-screen">
         <Routes>
           <Route
+            path="/login"
+            element={!user ? <Auth /> : <Navigate to="/" />}
+          />
+          <Route
             path="/"
-            element={user ? <TaskManager /> : <Auth />}
+            element={user ? <TaskManager /> : <Navigate to="/login" />}
           />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
